@@ -107,12 +107,5 @@ Execute tests
     ```
 ## System specifications used for development/ testing
 1. Relational database : Mariadb 10.1.26
-<<<<<<< HEAD
 2. Storage engine: InnoDB
 3. Web server nginx:1.15.2-alpine
-=======
-2. Storage engine InnoDB
-3. Web server nginx:1.15.2-alpine
-
-
->>>>>>> 129cafffa1955322a29b00a1fdae5db02ef56b53

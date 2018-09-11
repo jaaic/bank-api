@@ -63,7 +63,7 @@ Check the response
 7. Balance in the balances table cannot be negative (it has been created as unsigned decimal data type).
 8. User authentication/ authorization have not been addressed.
 9. Maximum transfer limit for 1 transaction is assumed to be 5000.
-10. Raw database queries have been used instead of ORM.
+10.Raw database queries have been used instead of ORM.
 
 ## Considerations
 1. To accidentally prevent the user from clicking pay/transfer button twice, the transaction reference number is generated 
@@ -107,5 +107,12 @@ Execute tests
     ```
 ## System specifications used for development/ testing
 1. Relational database : Mariadb 10.1.26
+<<<<<<< HEAD
 2. Storage engine: InnoDB
 3. Web server nginx:1.15.2-alpine
+=======
+2. Storage engine InnoDB
+3. Web server nginx:1.15.2-alpine
+
+
+>>>>>>> 129cafffa1955322a29b00a1fdae5db02ef56b53

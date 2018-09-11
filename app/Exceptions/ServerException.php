@@ -14,7 +14,10 @@ class ServerException extends BaseException
     protected $status = '500';
 
     /** @var string */
-    protected $title = 'Server Error';
+    protected $title = 'Internal Server Error';
+
+    /** @var string */
+    protected $type = 'Server Error';
 
     /** @var string */
     protected $detail = '';

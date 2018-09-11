@@ -13,4 +13,5 @@ class Constants
     const ERROR_STATE        = 'error';
     const SUCCESS_STATE      = 'success';
     const MAX_TRANSFER_LIMIT = 5000;
+    const DATE_FORMAT        = 'Y-m-d H:i:s';
 }

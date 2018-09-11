@@ -38,6 +38,9 @@ abstract class BaseException extends Exception
     protected $trace;
 
     /** @var string */
+    protected $type;
+
+    /** @var string */
     protected $responseState = 'error';
 
     /**

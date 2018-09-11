@@ -88,5 +88,20 @@ class BalancesTableSeeder extends Seeder
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
+
+        // accounts used in api tests
+        DB::table('balances')->insert([
+            'balance'    => 1000,
+            'account_nr' => 'test-acc-1',
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        DB::table('balances')->insert([
+            'balance'    => 10,
+            'account_nr' => 'test-acc-2',
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
     }
 }

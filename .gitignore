@@ -118,10 +118,7 @@ Icon
 
 # phpunit itself is not needed
 phpunit.phar
-# local phpunit config
-/phpunit.xml
 runtime
-.config.override.ini
 
 tests/_output/*
 storage/*.ini

@@ -12,13 +12,13 @@ Check the laravel 5.6 installation https://lumen.laravel.com/docs/5.6
 ## How to setup?
 1. clone the code to your machine
     ```
-    $ git clone git@github.com:jaaic/bank-api.git
+    git clone git@github.com:jaaic/bank-api.git
     ```
 2. Add correct MYSQL settings to .env file
 
 3. Install dependencies
     ```
-    $ composer install
+    composer install
     ```
 
 4. Create MYSQL database 

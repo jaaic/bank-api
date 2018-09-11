@@ -62,13 +62,15 @@ Check the response
 6. Negative value for amount is not allowed in the request.
 7. Balance in the balances table cannot be negative (it has been created as unsigned decimal data type).
 8. User authentication/ authorization have not been addressed.
-9. Raw database queries have been used instead of ORM.
+9. Maximum transfer limit for 1 transaction is assumed to be 5000.
+10.Raw database queries have been used instead of ORM.
 
 ## Considerations
 1. To accidentally prevent the user from clicking pay/transfer button twice, the transaction reference number is generated 
    as a hash of the account numbers, amount and current time stamp accurate to the second. If the same reference number exists
    in the transactions table, it means the same request was attempted within the single second and chances were it was
    accidental. Hence transaction is prevented.
+   Memcached or redis could be used for better performance.
 
 2. Under high concurrency, there would be multiple threads trying to update the same rows in the balance table. To prevent 
    other queries from reading uncommitted dirty data and doing the transfer calculations, row level locks are obtained 
@@ -105,7 +107,5 @@ Execute tests
     ```
 ## System specifications used for development/ testing
 1. Relational database : Mariadb 10.1.26
-2. Storage engine InnoDB
+2. Storage engine: InnoDB
 3. Web server nginx:1.15.2-alpine
-
-

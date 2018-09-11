@@ -182,6 +182,7 @@ class TransferService
         DB::statement('SET AUTOCOMMIT=1');
 
         return [
+            'status'        => '200',
             'responseState' => 'success',
             'id'            => $senderRef,
             'from'          => ['id'      => $this->senderAccount,

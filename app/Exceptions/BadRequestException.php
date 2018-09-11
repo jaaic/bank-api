@@ -10,12 +10,15 @@ namespace App\Exceptions;
  */
 class BadRequestException extends BaseException
 {
-    /** @var string  */
+    /** @var string */
     protected $status = '400';
 
-    /** @var string  */
-    protected $title  = 'Bad Request';
+    /** @var string */
+    protected $title = 'Bad Request';
 
-    /** @var string  */
+    /** @var string */
+    protected $type = 'Client Error';
+
+    /** @var string */
     protected $detail = '';
 }

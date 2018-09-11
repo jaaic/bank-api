@@ -2,6 +2,7 @@
 
 namespace App\Modules\Transactions\Services;
 
+use App\Core\Constants;
 use App\Exceptions\BadRequestException;
 use App\Exceptions\ServerException;
 use Illuminate\Support\Facades\DB;
@@ -38,6 +39,41 @@ class TransferService
     }
 
     /**
+     * Generate reference numbers for sender and receiver
+     *
+     * @param string $date
+     *
+     * @return array
+     */
+    public function generateRefs(string $date = ''): array
+    {
+        $senderHashAttributes = [
+            'from'      => $this->senderAccount,
+            'to'        => $this->receiverAccount,
+            'amount'    => $this->amount * (-1),
+            'timestamp' => $date,
+        ];
+
+        $senderRef = md5(json_encode($senderHashAttributes));
+
+
+        $receiverHashAttributes = [
+            'from'      => $this->senderAccount,
+            'to'        => $this->receiverAccount,
+            'amount'    => $this->amount,
+            'timestamp' => $date,
+        ];
+
+        $receiverRef = md5(json_encode($receiverHashAttributes));
+
+        return [
+            'sender'   => $senderRef,
+            'receiver' => $receiverRef,
+        ];
+
+    }
+
+    /**
      * Make transfer
      *
      * @return array
@@ -67,7 +103,7 @@ class TransferService
             if ($senderBalance < $this->amount) {
                 DB::rollBack(); // release lock
 
-                return (new BadRequestException('Amount cannot be transferred'))->toArray();
+                return (new BadRequestException('Amount cannot be transferred', 'Invalid Amount'))->toArray();
             }
 
             $newSenderBalance = round($senderBalance - $this->amount, 3);
@@ -84,8 +120,6 @@ class TransferService
             $balance         = DB::select(DB::raw("SELECT * FROM balances WHERE account_nr = '$this->receiverAccount' FOR UPDATE "));
 
             if (!empty($balance)) {
-                DB::rollBack(); // release lock
-
                 $receiverBalance = $balance[0]->balance;
             }
 
@@ -105,7 +139,19 @@ class TransferService
 
         // update tables
         try {
-            $date = date('Y-m-d H:i:s');
+            $date        = date(Constants::DATE_FORMAT);
+            $references  = $this->generateRefs($date);
+            $senderRef   = $references['sender'] ?? '';
+            $receiverRef = $references['receiver'] ?? '';
+
+            // check de dupe
+            $ref = DB::select("SELECT * FROM transactions WHERE reference = '$senderRef'");
+
+            if (!empty($ref)) {
+                DB::rollBack();
+
+                return (new BadRequestException('Please try again after few secs', 'de-dupe!'))->toArray();
+            }
 
             // update balances
             DB::statement("UPDATE balances SET balance = '$newSenderBalance', updated_at = '$date' 
@@ -116,8 +162,6 @@ class TransferService
                                   WHERE account_nr = '$this->receiverAccount' ");
 
             // log transactions
-            $senderRef      = uniqid('REF-');
-            $receiverRef    = uniqid('REF-');
             $senderDetail   = "Amount $this->amount paid to $this->receiverAccount";
             $receiverDetail = "Amount $this->amount received from $this->senderAccount";
 

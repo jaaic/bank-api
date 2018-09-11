@@ -2,38 +2,18 @@
 
 namespace Tests\ApiTests;
 
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\DB;
-use Laravel\Lumen\Testing\DatabaseMigrations;
 use Tests\TestCase;
 
-/**
- * Class TransferApiTest
+/********************************************
+ * Ensure below commands have been run only once
  *
- * @package Tests\ApiTests
- * @author  Jaai Chandekar
- */
+ * 1.  php artisan migrate
+ *
+ * 2. php artisan db:seed
+ *
+ *********************************************/
 class TransferApiTest extends TestCase
 {
-    use DatabaseMigrations;
-
-    public function createMockData()
-    {
-        factory('App\Modules\Transactions\Models\Balance')->create([
-            'account_nr' => 'test-acc-1',
-            'balance'    => 1000,
-        ]);
-
-        factory('App\Modules\Transactions\Models\Balance')->create([
-            'account_nr' => 'test-acc-2',
-            'balance'    => 10,
-        ]);
-
-        $this->seeInDatabase('balances', ['account_nr' => 'test-acc-1', 'balance' => 1000]);
-        $this->seeInDatabase('balances', ['account_nr' => 'test-acc-2', 'balance' => 10]);
-
-    }
-
     /**
      * Test transfer endpoint and the results
      *
@@ -41,7 +21,6 @@ class TransferApiTest extends TestCase
      */
     public function testTransferSuccess()
     {
-        $this->createMockData();
         $response = $this->call('POST', '/transfer', [
             'from'   => 'test-acc-1',
             'to'     => 'test-acc-2',
@@ -66,8 +45,6 @@ class TransferApiTest extends TestCase
      */
     public function testClientValidationErrors()
     {
-        $this->createMockData();
-
         // Negative amount
         $response = $this->call('POST', '/transfer', [
             'from'   => 'test-acc-1',
@@ -96,8 +73,6 @@ class TransferApiTest extends TestCase
      */
     public function testClientErrors()
     {
-        $this->createMockData();
-
         // Unknown Account numbers
         $response = $this->call('POST', '/transfer', [
             'from'   => 'test-acc-3',
@@ -118,16 +93,27 @@ class TransferApiTest extends TestCase
     }
 
     /**
-     * Clean up the testing environment before the next test.
+     * Test clicking transfer twice within secs accidentally
      *
      * @return void
-     *
      */
-    public function tearDown(): void
+    public function testDedupe()
     {
-        Artisan::call('migrate:reset');
-        DB::connection('mysql')->table('migrations')->truncate();
-        parent::tearDown();
+        $this->call('POST', '/transfer', [
+            'from'   => 'test-acc-1',
+            'to'     => 'test-acc-2',
+            'amount' => 10,
+        ]);
 
+        $response2 = $this->call('POST', '/transfer', [
+            'from'   => 'test-acc-1',
+            'to'     => 'test-acc-2',
+            'amount' => 10,
+        ]);
+
+        $result2 = json_decode($response2->getContent(), true);
+        $this->assertEquals(400, $result2['status']);
+        $this->assertEquals('de-dupe!', $result2['title']);
+        $this->assertEquals('Please try again after few secs', $result2['detail']);
     }
 }

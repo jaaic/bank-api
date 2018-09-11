@@ -57,12 +57,12 @@ Check the response
 1. There is a base currency for the bank and all transactions are made in the same currency
 2. balances and transactions tables have 'created_at', 'updated_at' columns which are timestamps to keep track of the changes.
 3. 'details' column has been added to transactions table to records details of transfer.
-3. The value of 'id' in response is the reference number of the sender logged in the transactions table upon success.
-4. Transactions for both sender (outgoing) and receiver (incoming) are logged in the transactions table.
-5. Negative value for amount is not allowed in the request.
-6. Balance in the balances table cannot be negative (it has been created as unsigned decimal data type).
-7. User authentication/ authorization have not been addressed.
-8. Raw database queries have been used instead of ORM.
+4. The value of 'id' in response is the reference number of the sender logged in the transactions table upon success.
+5. Transactions for both sender (outgoing) and receiver (incoming) are logged in the transactions table.
+6. Negative value for amount is not allowed in the request.
+7. Balance in the balances table cannot be negative (it has been created as unsigned decimal data type).
+8. User authentication/ authorization have not been addressed.
+9. Raw database queries have been used instead of ORM.
 
 ## Considerations
 1. To accidentally prevent the user from clicking pay/transfer button twice, the transaction reference number is generated 

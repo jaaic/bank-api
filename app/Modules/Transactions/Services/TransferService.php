@@ -88,7 +88,6 @@ class TransferService
 
         // sender process
         try {
-            $senderBalance = 0;
             $balance       = DB::select("SELECT balance FROM balances WHERE account_nr = '$this->senderAccount' FOR UPDATE ");
 
             if (!empty($balance)) {
@@ -118,7 +117,6 @@ class TransferService
 
         // receiver process
         try {
-            $receiverBalance = 0;
             $balance         = DB::select(DB::raw("SELECT * FROM balances WHERE account_nr = '$this->receiverAccount' FOR UPDATE "));
 
             if (!empty($balance)) {

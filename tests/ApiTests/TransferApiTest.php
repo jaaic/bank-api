@@ -2,6 +2,7 @@
 
 namespace Tests\ApiTests;
 
+use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
 /********************************************
@@ -113,7 +114,19 @@ class TransferApiTest extends TestCase
 
         $result2 = json_decode($response2->getContent(), true);
         $this->assertEquals(400, $result2['status']);
-        $this->assertEquals('de-dupe!', $result2['title']);
-        $this->assertEquals('Please try again after few secs', $result2['detail']);
+        $this->assertEquals('Current transaction already in process ..', $result2['title']);
+        $this->assertEquals('Please try again after sometime', $result2['detail']);
+    }
+
+    /**
+     * Clean up to run after each test
+     *
+     * @return void
+     */
+    public function tearDown(): void
+    {
+        // clear redis cache
+        Artisan::call('cache:clear');
+        parent::tearDown();
     }
 }

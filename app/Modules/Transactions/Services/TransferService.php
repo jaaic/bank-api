@@ -5,8 +5,10 @@ namespace App\Modules\Transactions\Services;
 use App\Core\Constants;
 use App\Exceptions\BadRequestException;
 use App\Exceptions\ServerException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Class TransferService
@@ -145,12 +147,10 @@ class TransferService
             $receiverRef = $references['receiver'] ?? '';
 
             // check de dupe
-            $ref = DB::select("SELECT * FROM transactions WHERE reference = '$senderRef'");
-
-            if (!empty($ref)) {
+            if ($this->isCached($senderRef)) {
                 DB::rollBack();
 
-                return (new BadRequestException('Please try again after few secs', 'de-dupe!'))->toArray();
+                return (new BadRequestException('Please try again after sometime', 'Current transaction already in process ..'))->toArray();
             }
 
             // update balances
@@ -192,5 +192,32 @@ class TransferService
             'transferred'   => $this->amount,
         ];
 
+    }
+
+    /**
+     * Check if value exists in caches
+     *
+     * @param string $reference
+     *
+     * @return bool
+     */
+    public function isCached(string $reference): bool
+    {
+        try {
+            $value = Cache::get($reference);
+
+            if (empty($value)) {
+                Cache::store('redis')->put($reference, 1, Constants::REDIS_CACHE_VALID_MINUTES);
+            }
+        } catch (Exception $exception) {
+            Log::error('Error reading and writing to cache- ' . $exception->getMessage());
+            $value = '';
+        }
+
+        if (empty($value)) {
+            $value = DB::select("SELECT * FROM transactions WHERE reference = '$reference'");
+        }
+
+        return (empty($value) ? false : true);
     }
 }

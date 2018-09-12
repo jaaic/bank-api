@@ -71,4 +71,24 @@ return [
     */
 
     'migrations' => 'migrations',
+
+    /*
+   |--------------------------------------------------------------------------
+   | Redis Databases
+   |--------------------------------------------------------------------------
+   |
+   | Redis is an open source, fast, and advanced key-value store that also
+   | provides a richer set of commands than a typical key-value systems
+   | such as APC or Memcached. Laravel makes it easy to dig right in.
+   |
+   */
+
+    'redis' => [
+        'cluster' => env('BANK_API.CACHE.REDIS.CLUSTER', false),
+
+        'default' => [
+            'host' => env('BANK_API.CACHE.REDIS.HOST', 'redis'),
+            'port' => env('BANK_API.CACHE.REDIS.PORT', 6379),
+        ],
+    ],
 ];

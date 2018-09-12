@@ -67,10 +67,10 @@ Check the response
 
 ## Considerations
 1. To accidentally prevent the user from clicking pay/transfer button twice, the transaction reference number is generated 
-   as a hash of the account numbers, amount and current time stamp accurate to the second. If the same reference number exists
-   in the transactions table, it means the same request was attempted within the single second and chances were it was
+   as a hash of the account numbers, amount and current time stamp accurate to the minute. If the same reference number exists
+   in the cache or transactions table, it means the same request was attempted within the single minute and could be
    accidental. Hence transaction is prevented.
-   Memcached or redis could be used for better performance.
+   Memcached or redis could be used as cache.
 
 2. Under high concurrency, there would be multiple threads trying to update the same rows in the balance table. To prevent 
    other queries from reading uncommitted dirty data and doing the transfer calculations, row level locks are obtained 
@@ -82,7 +82,7 @@ Check the response
    Various exceptions have been handled and rollback has been initiated in case of any exception.
    
 4. If 2 users(A,B) transfer data to C at the same time, one would have to wait until C's balance as been updated by other 
-   due to row locking in select statement. This would prevent reading the wrong balance, balance calculations
+   due to row locking in select statement. This would prevent reading the wrong balance and performing balance calculations
    on the amount that would be immediately updated by another process.
 
 ## Running tests

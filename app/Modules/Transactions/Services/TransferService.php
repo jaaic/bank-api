@@ -98,7 +98,7 @@ class TransferService
             if (empty($balance) || empty($senderBalance)) {
                 DB::rollBack(); // release lock
 
-                return (new BadRequestException('Sender Account not found'))->toArray();
+                return (new BadRequestException('Sender Account not found', 'Account not found'))->toArray();
             }
 
             // check sender balance
@@ -113,7 +113,7 @@ class TransferService
         } catch (Exception $exception) {
             DB::rollBack(); // release lock
 
-            return (new ServerException('Error reading sender balance ' . $exception->getMessage()))->toArray();
+            return (new ServerException('Error reading sender balance ', 'DB error', $exception->getMessage()))->toArray();
         }
 
         // receiver process
@@ -128,7 +128,7 @@ class TransferService
             if (empty($balance) || empty($receiverBalance)) {
                 DB::rollBack(); // release lock
 
-                return (new BadRequestException('Receiver Account not found'))->toArray();
+                return (new BadRequestException('Receiver Account not found', 'Account Not Found'))->toArray();
             }
 
             $newReceiverBalance = round($receiverBalance + $this->amount, 3);
@@ -136,7 +136,7 @@ class TransferService
         } catch (Exception $exception) {
             DB::rollBack(); // release lock
 
-            return (new ServerException('Error reading receiver balance ' . $exception->getMessage()))->toArray();
+            return (new ServerException('Error reading receiver balance ', 'DB error', $exception->getMessage()))->toArray();
         }
 
         // update tables
@@ -153,7 +153,6 @@ class TransferService
                 return (new BadRequestException('Please try again after sometime', 'Current transaction already in process ..'))->toArray();
             }
 
-
             // update balances
             DB::statement("UPDATE balances SET balance = :newBal, updated_at = :updatedDate WHERE account_nr = :accNr",
                 [
@@ -166,7 +165,7 @@ class TransferService
             DB::statement("UPDATE balances SET balance = :newBal, updated_at = :updatedDate
                                   WHERE account_nr = :accNr",
                 [
-                    'newBal'      => $newSenderBalance,
+                    'newBal'      => $newReceiverBalance,
                     'updatedDate' => $date,
                     'accNr'       => $this->receiverAccount,
                 ]);
@@ -186,7 +185,7 @@ class TransferService
         } catch (Exception $exception) {
             DB::rollBack();
 
-            return (new ServerException('Error updating db ' . $exception->getMessage()))->toArray();
+            return (new ServerException('Error updating db ', 'DB error', $exception->getMessage()))->toArray();
         }
 
         DB::statement('SET AUTOCOMMIT=1');
@@ -223,7 +222,7 @@ class TransferService
                     $value = DB::select(DB::raw("SELECT reference FROM transactions WHERE reference = :ref"),
                         ['ref' => $reference]);
                 } catch (Exception $exception) {
-                    Log::error($exception->getMessage());
+                    Log::error('Error getting reference from db -' . $exception->getMessage());
 
                 }
             }

@@ -58,11 +58,14 @@ abstract class BaseException extends Exception
      *
      * @param string $detail
      * @param string $title
+     * @param string $trace
      */
-    public function __construct($detail, $title = '')
+    public function __construct($detail, $title = '', $trace = '')
     {
         $this->detail = $detail ?: $this->detail;
         $this->title  = $title ?: $this->title;
+        $this->trace  = $trace ?: $this->trace;
+
 
         parent::__construct($this->detail);
     }

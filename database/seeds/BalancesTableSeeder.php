@@ -99,7 +99,7 @@ class BalancesTableSeeder extends Seeder
         ]);
 
         DB::table('balances')->insert([
-            'balance'    => 10,
+            'balance'    => 50,
             'account_nr' => 'test-acc-2',
             'created_at' => date(Constants::DATE_FORMAT),
             'updated_at' => date(Constants::DATE_FORMAT),

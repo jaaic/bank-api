@@ -88,8 +88,8 @@ class TransferService
 
         // sender process
         try {
-            $senderBalance = 0;
-            $balance       = DB::select("SELECT balance FROM balances WHERE account_nr = '$this->senderAccount' FOR UPDATE ");
+            $balance = DB::select(DB::raw("SELECT balance FROM balances WHERE account_nr = :accountNr FOR UPDATE "),
+                ['accountNr' => $this->senderAccount]);
 
             if (!empty($balance)) {
                 $senderBalance = $balance[0]->balance;
@@ -118,8 +118,8 @@ class TransferService
 
         // receiver process
         try {
-            $receiverBalance = 0;
-            $balance         = DB::select(DB::raw("SELECT * FROM balances WHERE account_nr = '$this->receiverAccount' FOR UPDATE "));
+            $balance = DB::select(DB::raw("SELECT balance FROM balances WHERE account_nr = :accountNr FOR UPDATE "),
+                ['accountNr' => $this->receiverAccount]);
 
             if (!empty($balance)) {
                 $receiverBalance = $balance[0]->balance;
@@ -153,23 +153,33 @@ class TransferService
                 return (new BadRequestException('Please try again after sometime', 'Current transaction already in process ..'))->toArray();
             }
 
+
             // update balances
-            DB::statement("UPDATE balances SET balance = '$newSenderBalance', updated_at = '$date' 
-                                 WHERE account_nr = '$this->senderAccount' ");
+            DB::statement("UPDATE balances SET balance = :newBal, updated_at = :updatedDate WHERE account_nr = :accNr",
+                [
+                    'newBal'      => $newSenderBalance,
+                    'updatedDate' => $date,
+                    'accNr'       => $this->senderAccount,
+                ]);
 
 
-            DB::statement("UPDATE balances SET balance = '$newReceiverBalance', updated_at = '$date'
-                                  WHERE account_nr = '$this->receiverAccount' ");
+            DB::statement("UPDATE balances SET balance = :newBal, updated_at = :updatedDate
+                                  WHERE account_nr = :accNr",
+                [
+                    'newBal'      => $newSenderBalance,
+                    'updatedDate' => $date,
+                    'accNr'       => $this->receiverAccount,
+                ]);
 
             // log transactions
             $senderDetail   = "Amount $this->amount paid to $this->receiverAccount";
             $receiverDetail = "Amount $this->amount received from $this->senderAccount";
 
-            DB::statement("INSERT INTO transactions (reference, amount, account_nr, details, created_at, updated_at)
-                                  VALUES ('$senderRef', '$this->amount', '$this->senderAccount', '$senderDetail', '$date', '$date'); ");
+            DB::insert("INSERT INTO transactions (reference, amount, account_nr, details, created_at, updated_at)
+                                  VALUES (?, ?, ?, ?, ?, ?)", [$senderRef, $this->amount, $this->senderAccount, $senderDetail, $date, $date]);
 
-            DB::statement("INSERT INTO transactions (reference, amount, account_nr, details, created_at, updated_at)
-                                  VALUES ('$receiverRef', '$this->amount', '$this->receiverAccount', '$receiverDetail', '$date', '$date') ");
+            DB::insert("INSERT INTO transactions (reference, amount, account_nr, details, created_at, updated_at)
+                                  VALUES (?, ?, ?, ?, ?, ?)", [$receiverRef, $this->amount, $this->receiverAccount, $receiverDetail, $date, $date]);
 
             DB::commit();
 
@@ -207,15 +217,19 @@ class TransferService
             $value = Cache::get($reference);
 
             if (empty($value)) {
-                Cache::store('redis')->put($reference, 1, Constants::REDIS_CACHE_VALID_MINUTES);
+                Cache::put($reference, 1, Constants::REDIS_CACHE_VALID_MINUTES);
+
+                try {
+                    $value = DB::select(DB::raw("SELECT reference FROM transactions WHERE reference = :ref"),
+                        ['ref' => $reference]);
+                } catch (Exception $exception) {
+                    Log::error($exception->getMessage());
+
+                }
             }
         } catch (Exception $exception) {
             Log::error('Error reading and writing to cache- ' . $exception->getMessage());
             $value = '';
-        }
-
-        if (empty($value)) {
-            $value = DB::select("SELECT * FROM transactions WHERE reference = '$reference'");
         }
 
         return (empty($value) ? false : true);

@@ -24,7 +24,6 @@ class ErrorResponse extends Response
             'title',
             'detail',
             'type',
-            'trace',
         ];
     }
 }

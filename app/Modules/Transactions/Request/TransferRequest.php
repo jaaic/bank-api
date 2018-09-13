@@ -59,7 +59,7 @@ class TransferRequest extends Request
     public function process(): array
     {
         if ($this->getAttribute('amount') <= 0) {
-            $this->setErrors((new BadRequestException('Invalid amount'))->toArray());
+            $this->setErrors((new BadRequestException('Input correct amount', 'Invalid amount'))->toArray());
         }
 
         // check validation errors

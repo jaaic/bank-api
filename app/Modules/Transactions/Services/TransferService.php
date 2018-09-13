@@ -223,7 +223,6 @@ class TransferService
                         ['ref' => $reference]);
                 } catch (Exception $exception) {
                     Log::error('Error getting reference from db -' . $exception->getMessage());
-
                 }
             }
         } catch (Exception $exception) {
